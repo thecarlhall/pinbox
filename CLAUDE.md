@@ -4,64 +4,70 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **Chrome extension** that injects a configurable tabs bar into Gmail, allowing users to pin labels, search queries, and custom views as tabs above their inbox.
+**Pinbox** is a Chrome MV3 extension that injects a pill-style tab bar into Gmail, letting users pin labels and search queries as one-click tabs above the inbox.
 
-## What We're Building
+## Features
 
-A Chrome MV3 extension that:
-- Injects a tabs bar into Gmail's UI (below the search bar, above the message list)
-- Each tab references a Gmail label or search query
-- Supports drag-and-drop tab reordering (horizontal + multi-row)
-- Shows live unread badge counts per tab (three-tier detection strategy)
-- Supports Light / Dark / System themes mirroring Gmail's native dark mode
-- Maintains independent tab configs per signed-in Gmail account (multi-account)
-- Syncs config via `chrome.storage.sync`; supports export/import as JSON backup
-- Includes an Options Dashboard with Google Apps Script code generation for automation rules (auto-trash, archive, mark-read, move emails by age)
+- Pill/chip tab bar injected below Gmail's search bar, above the message list
+- Each tab references a Gmail label or search query; clicking navigates to that view
+- Per-tab chevron (▼) opens an Edit / Remove dropdown; inline forms for add/edit
+- Horizontal drag-and-drop reordering with insertion indicator
+- Live unread badge counts scraped from Gmail's sidebar DOM
+- Light/dark theme detection; defaults to light
+- Config synced via `chrome.storage.sync`, keyed per Gmail account
+- Options dashboard: manage tabs, theme picker, export/import JSON, Apps Script generator
 
-## Key Architectural Decisions
-
-- **MV3 content script** injects the tab bar DOM into Gmail. Use `MutationObserver` to detect when Gmail's inbox view renders (Gmail is a heavy SPA).
-- **No background page** for core tab functionality — prefer content script + service worker (MV3) only when needed (e.g., badge counts via Gmail API or alarm-based polling).
-- **Multi-account isolation**: key all `chrome.storage.sync` data by the active account's email address (extractable from Gmail's DOM or the `accounts.google.com` cookie).
-- **Unread counts** come entirely from DOM scraping of Gmail's sidebar label badges — no OAuth or API calls needed. Counts work for named labels and standard views (Inbox, Starred, Sent, etc.). Arbitrary search-query tabs (e.g. `is:unread from:boss`) show no badge since Gmail has no sidebar entry for them.
-- **Drag-and-drop**: implement with native HTML5 drag events or the Pointer Events API — avoid heavy DnD libraries to keep the extension lightweight.
-- **Theme detection**: observe Gmail's `<html>` element for the `dark` attribute or data attribute that Gmail sets; mirror it in the injected tab bar.
-
-## Extension Structure (to be created)
+## Extension Structure
 
 ```
-manifest.json          # MV3 manifest
-content/               # Content script injected into mail.google.com
-  main.js              # Entry point — bootstraps tab bar after Gmail loads
-  tabBar.js            # Tab bar DOM creation and management
-  dragDrop.js          # Drag-and-drop reordering logic
-  unreadCounts.js      # Three-tier unread count detection
-  theme.js             # Light/dark/system theme detection and application
-background/
-  service_worker.js    # Alarm-based tasks, OAuth token management if needed
-options/
-  index.html           # Options Dashboard UI
-  options.js           # Settings, export/import, Apps Script code generator
+manifest.json              # MV3 manifest — loads content scripts in order
+content/
+  content_script.js        # Entry point: waits for Gmail SPA, injects bar, handles navigation
+  tabBar.js                # PinboxTabBar class — DOM, dropdown menus, inline forms
+  dragDrop.js              # PinboxDragDrop — HTML5 drag events, insertion indicator
+  unreadCounts.js          # PinboxUnread — DOM scraping of Gmail's sidebar badges
+  theme.js                 # PinboxTheme — luminance-based dark mode detection
+  tabBar.css               # All injected styles, scoped under #pinbox-root
 shared/
-  storage.js           # Typed wrappers around chrome.storage.sync
-  accounts.js          # Active Gmail account detection
-assets/
-  icons/               # Extension icons (16, 32, 48, 128px)
-  styles/              # CSS for injected tab bar (scoped to avoid Gmail conflicts)
+  storage.js               # PinboxStorage — chrome.storage.sync wrappers
+  accounts.js              # PinboxAccounts — active Gmail account detection from DOM
+background/
+  service_worker.js        # Opens options page on toolbar icon click
+options/
+  index.html / options.js / options.css   # Options dashboard
+assets/icons/              # PNG icons at 16/32/48/128px (regenerate with generate_icons.py)
 ```
 
-## Permissions (manifest.json)
+## Key Architecture
 
-- `storage` — sync tab configs
+**Content script loading order matters** — the manifest loads files sequentially, so each global (`PinboxStorage`, `PinboxAccounts`, etc.) is available by the time `content_script.js` runs. No bundler is used; each file attaches its module to a global const.
+
+**Injection point**: `[role="main"]` is the most stable Gmail selector. The bar is prepended as the first child with `position: sticky; top: 0` so it stays visible while the message list scrolls.
+
+**SPA navigation**: Gmail fires `hashchange` on view switches. `content_script.js` listens for this and also runs a `MutationObserver` on `document.body` to re-inject the bar if Gmail's DOM replacements remove it.
+
+**Theme detection**: reads computed `backgroundColor` from `[role="main"]` → `.nH` → `document.body`, checking luminance. Skips elements with alpha < 0.1 (transparent) to avoid false dark detection. Defaults to `'light'` if no opaque background is found.
+
+**Unread counts**: DOM-only, no OAuth. Searches `[role="navigation"]` items for aria-labels like `"Inbox 4 unread"`. Works for named labels and standard views; search-query tabs show no badge.
+
+**No OAuth / no GCP project required** — safe for corporate Google Workspace environments. The `identity` permission and `oauth2` manifest key are intentionally absent.
+
+## Permissions
+
+- `storage` — sync tab configs across browsers
 - Host permission: `https://mail.google.com/*`
 
-No `identity` or `oauth2` required. The extension is safe to deploy in corporate Google Workspace environments without a GCP project.
+## CSS / Naming Conventions
+
+- Root element id: `#pinbox-root`
+- All CSS classes prefixed `pb-` (e.g. `pb-tab`, `pb-active`, `pb-dropdown`)
+- CSS variables defined on `#pinbox-root`, overridden under `#pinbox-root.pb-dark`
 
 ## Development
 
-Since no build toolchain exists yet, keep it simple unless complexity demands otherwise:
-- Plain ES modules in the content script (bundled via esbuild/rollup if imports grow)
-- Load unpacked extension from Chrome's `chrome://extensions` with Developer Mode on
-- Test by navigating to `mail.google.com` after loading the extension
+Load unpacked from `chrome://extensions` with Developer Mode on. After any file change, click the reload icon on the extension card, then hard-refresh Gmail.
 
-To reload after changes: click the reload icon on `chrome://extensions` or use the Extensions Reloader extension during development.
+Regenerate icons (needed once after cloning):
+```
+python3 generate_icons.py
+```
