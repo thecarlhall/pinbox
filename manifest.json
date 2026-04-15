@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "name": "Pinbox",
+  "version": "1.0.0",
+  "description": "Pin Gmail labels and search queries as tabs above your inbox.",
+
+  "permissions": ["storage"],
+  "host_permissions": ["https://mail.google.com/*"],
+
+  "content_scripts": [
+    {
+      "matches": ["https://mail.google.com/*"],
+      "js": [
+        "shared/storage.js",
+        "shared/accounts.js",
+        "content/theme.js",
+        "content/unreadCounts.js",
+        "content/dragDrop.js",
+        "content/tabBar.js",
+        "content/content_script.js"
+      ],
+      "css": ["content/tabBar.css"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "background": {
+    "service_worker": "background/service_worker.js"
+  },
+
+  "options_ui": {
+    "page": "options/index.html",
+    "open_in_tab": true
+  },
+
+  "action": {
+    "default_title": "Pinbox",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
+    }
+  },
+
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["options/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

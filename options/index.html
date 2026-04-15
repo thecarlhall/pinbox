@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pinbox — Options</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-title">
+        <svg class="logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="8" fill="#1a73e8"/>
+          <rect x="6" y="10" width="20" height="14" rx="2" fill="white" opacity="0.2"/>
+          <rect x="6" y="8" width="8" height="5" rx="2" fill="white"/>
+          <rect x="16" y="8" width="6" height="5" rx="2" fill="white" opacity="0.7"/>
+        </svg>
+        <h1>Pinbox</h1>
+      </div>
+      <p class="header-sub">Configure your pinned inbox tabs</p>
+    </header>
+
+    <!-- Account selector -->
+    <section class="card">
+      <h2>Account</h2>
+      <div class="field-row">
+        <label for="account-select">Active account</label>
+        <select id="account-select"></select>
+      </div>
+    </section>
+
+    <!-- Tabs list -->
+    <section class="card">
+      <div class="section-header">
+        <h2>Tabs</h2>
+        <button class="btn btn-primary" id="add-tab-btn">+ Add tab</button>
+      </div>
+
+      <div id="tabs-list" class="tabs-list"></div>
+
+      <!-- Add / Edit tab form (hidden by default) -->
+      <div id="tab-form" class="tab-form hidden">
+        <h3 id="form-title">Add tab</h3>
+        <div class="form-grid">
+          <label for="tab-name">Name</label>
+          <input type="text" id="tab-name" maxlength="32" placeholder="e.g. Work" />
+
+          <label for="tab-query">Label or search query</label>
+          <input type="text" id="tab-query" maxlength="256"
+                 placeholder="e.g. label:work  or  is:unread from:boss" />
+
+          <label for="tab-icon">Icon (emoji, optional)</label>
+          <input type="text" id="tab-icon" maxlength="4" placeholder="e.g. 💼" />
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="form-save">Save</button>
+          <button class="btn" id="form-cancel">Cancel</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Appearance -->
+    <section class="card">
+      <h2>Appearance</h2>
+      <div class="field-row">
+        <label>Theme</label>
+        <div class="radio-group">
+          <label><input type="radio" name="theme" value="system" checked /> System</label>
+          <label><input type="radio" name="theme" value="light" /> Light</label>
+          <label><input type="radio" name="theme" value="dark" /> Dark</label>
+        </div>
+      </div>
+      <div class="field-row">
+        <label for="show-unread">Show unread counts</label>
+        <label class="toggle">
+          <input type="checkbox" id="show-unread" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <!-- Backup -->
+    <section class="card">
+      <h2>Backup &amp; Sync</h2>
+      <div class="button-row">
+        <button class="btn" id="export-btn">Export config</button>
+        <button class="btn" id="import-btn">Import config</button>
+        <input type="file" id="import-file" accept=".json" class="hidden" />
+      </div>
+    </section>
+
+    <!-- Apps Script Generator -->
+    <section class="card">
+      <h2>Automation — Google Apps Script</h2>
+      <p class="help-text">
+        Generate a Google Apps Script you can deploy in your Gmail account to
+        automatically archive, trash, or mark emails as read based on age.
+      </p>
+
+      <div class="form-grid">
+        <label for="rule-label">Label / query</label>
+        <input type="text" id="rule-label" placeholder="e.g. label:newsletters" />
+
+        <label for="rule-days">Older than (days)</label>
+        <input type="number" id="rule-days" min="1" value="30" style="width: 80px;" />
+
+        <label for="rule-action">Action</label>
+        <select id="rule-action">
+          <option value="archive">Archive (remove from inbox)</option>
+          <option value="trash">Move to Trash</option>
+          <option value="markRead">Mark as read</option>
+          <option value="star">Star</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" id="generate-script-btn">Generate script</button>
+
+      <div id="script-output" class="script-output hidden">
+        <div class="script-header">
+          <span>Generated script — paste into <a href="https://script.google.com" target="_blank">script.google.com</a></span>
+          <button class="btn btn-sm" id="copy-script-btn">Copy</button>
+        </div>
+        <pre id="script-code"></pre>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span id="status-msg" class="status-msg"></span>
+    </footer>
+  </div>
+
+  <script src="../shared/storage.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
