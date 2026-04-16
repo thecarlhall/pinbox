@@ -11,8 +11,9 @@
   if (window.__pinboxLoaded) return;
   window.__pinboxLoaded = true;
 
-  const POLL_INTERVAL_MS   = 30_000; // unread count polling
-  const REINJECT_DELAY_MS  = 800;    // wait after SPA navigation before re-injecting
+  const POLL_INTERVAL_MS      = 30_000; // unread count polling
+  const REINJECT_DELAY_MS     = 800;    // wait after SPA navigation before re-injecting
+  const UNREAD_INIT_DELAY_MS  = 2_500;  // Gmail renders sidebar counts asynchronously
 
   let tabBarInstance = null;
   let currentAccount = null;
@@ -171,9 +172,7 @@
   // ── Unread count polling ──────────────────────────────────────────────────
 
   function startUnreadPolling(tabs) {
-    // Delay the first scrape — Gmail renders sidebar counts asynchronously
-    // and they may not be present immediately after injection.
-    setTimeout(() => refreshUnreadCounts(tabs), 2500);
+    setTimeout(() => refreshUnreadCounts(tabs), UNREAD_INIT_DELAY_MS);
     clearInterval(pollTimer);
     pollTimer = setInterval(() => {
       PinboxUnread.clearCache();

@@ -67,6 +67,11 @@ const PinboxUnread = (() => {
    *
    * It also renders a visible text badge (e.g. "4") inside the item.
    */
+  // Returns true if str starts with or equals needle, allowing a trailing space.
+  function labelMatches(str, needle) {
+    return str === needle || str.startsWith(needle + ' ');
+  }
+
   function scrapeSidebar(labelName) {
     const raw        = labelName.toLowerCase();
     const normalized = raw.replace(/[-_]/g, ' ').trim();
@@ -85,17 +90,15 @@ const PinboxUnread = (() => {
       const title     = (el.getAttribute('title') || '').toLowerCase();
       const text      = el.textContent.trim().toLowerCase();
 
+      // Try both normalized (spaces) and raw (underscores) forms since Gmail
+      // may display labels either way across sidebar versions.
       const matched =
-        ariaLabel.startsWith(normalized) ||
-        ariaLabel.startsWith(raw) ||
-        tooltip === normalized ||
-        tooltip === raw ||
-        title === normalized ||
-        title === raw ||
-        text.startsWith(normalized + ' ') ||
-        text === normalized ||
-        text.startsWith(raw + ' ') ||
-        text === raw;
+        [normalized, raw].some((n) =>
+          ariaLabel.startsWith(n) ||
+          tooltip === n ||
+          title === n ||
+          labelMatches(text, n)
+        );
 
       if (!matched) continue;
 
