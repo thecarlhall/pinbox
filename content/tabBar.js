@@ -39,12 +39,12 @@ const PinboxTabBar = (() => {
       this.root = root;
       this.tabsContainer = tabsContainer;
 
-      // Close any open dropdown when clicking outside the tab bar
-      document.addEventListener('click', (e) => {
+      this._outsideClickHandler = (e) => {
         if (this._openDropdown && !this._openDropdown.contains(e.target)) {
           this._closeDropdown();
         }
-      }, true);
+      };
+      document.addEventListener('click', this._outsideClickHandler, true);
 
       PinboxDragDrop.enableContainer(tabsContainer, (from, to) => {
         const reordered = [...this.tabs];
@@ -368,6 +368,15 @@ const PinboxTabBar = (() => {
     updateTabs(tabs) {
       this.tabs = tabs;
       this._renderTabs();
+    }
+
+    destroy() {
+      this._closeDropdown();
+      if (this._outsideClickHandler) {
+        document.removeEventListener('click', this._outsideClickHandler, true);
+        this._outsideClickHandler = null;
+      }
+      this.root?.remove();
     }
   }
 

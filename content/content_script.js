@@ -19,6 +19,7 @@
   let currentAccount = null;
   let pollTimer = null;
   let reinjectTimer = null;
+  let lastUnreadJson = null;
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────
   await waitForGmail();
@@ -28,6 +29,9 @@
   // ── Core lifecycle ────────────────────────────────────────────────────────
 
   async function mount() {
+    tabBarInstance?.destroy();
+    lastUnreadJson = null;
+
     currentAccount = PinboxAccounts.getActiveAccount();
     const tabs = await PinboxStorage.loadTabs(currentAccount);
     const settings = await PinboxStorage.loadSettings();
@@ -187,6 +191,9 @@
         counts[tab.id] = await PinboxUnread.getCount(tab);
       })
     );
+    const json = JSON.stringify(counts);
+    if (json === lastUnreadJson) return;
+    lastUnreadJson = json;
     tabBarInstance?.updateUnreadCounts(counts);
   }
 
