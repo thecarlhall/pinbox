@@ -26,12 +26,8 @@ Tab names support emoji — just type them directly into the name field.
 ## Installation
 
 1. Clone or download this repo
-2. Generate icons (required once):
-   ```
-   python3 generate_icons.py
-   ```
-3. Open `chrome://extensions` and enable **Developer mode**
-4. Click **Load unpacked** and select the repo directory
+2. Open `chrome://extensions` and enable **Developer mode**
+3. Click **Load unpacked** and select the repo directory
 
 After any code change, click the reload icon on the extension card and hard-refresh Gmail.
 

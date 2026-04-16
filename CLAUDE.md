@@ -37,7 +37,7 @@ background/
   service_worker.js        # Opens options page on toolbar icon click
 options/
   index.html / options.js / options.css   # Options dashboard
-assets/icons/              # PNG icons at 16/32/48/128px (regenerate with generate_icons.py)
+assets/icons/              # PNG icons at 16/32/48/128px (committed, no generator needed)
 ```
 
 ## Key Architecture
@@ -85,8 +85,3 @@ The `label:` / `in:` regex uses `\S+` (not `.+`) to avoid matching compound quer
 ## Development
 
 Load unpacked from `chrome://extensions` with Developer Mode on. After any file change, click the reload icon on the extension card, then hard-refresh Gmail.
-
-Regenerate icons (needed once after cloning):
-```
-python3 generate_icons.py
-```
