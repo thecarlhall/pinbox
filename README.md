@@ -1,4 +1,4 @@
-# Pinbox
+# ![Pinbox](assets/icons/icon48.png) Pinbox
 
 A Chrome extension that adds a persistent tab bar to Gmail, letting you pin labels and search queries as one-click tabs above the inbox.
 
