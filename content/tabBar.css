@@ -44,7 +44,6 @@
   border-bottom: 1px solid var(--gt-border-bar);
   position: sticky;
   top: 0;
-  z-index: 1000;
   font-family: 'Google Sans', Roboto, Arial, sans-serif;
   font-size: 13px;
   box-sizing: border-box;
