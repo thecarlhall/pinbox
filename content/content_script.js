@@ -75,13 +75,29 @@
   }
 
   /**
-   * Find the element just before the message list inside [role="main"].
-   * Gmail renders: [role="main"] > (toolbar divs) > (message list container)
-   * We prepend to [role="main"] so our sticky bar sits at the very top.
+   * Find the injection point above Gmail's toolbar buttons.
+   * Walk up from [role="main"] until we find an ancestor where the current
+   * element is NOT the first child — meaning there are sibling elements
+   * before it (the toolbar). Injecting at the top of that ancestor puts the
+   * bar above both the toolbar and the message list.
+   * Falls back to prepending inside [role="main"] if nothing suitable found.
    */
   function findInjectionParent() {
     const main = document.querySelector('[role="main"]');
     if (!main) return null;
+
+    let current = main;
+    let parent = main.parentElement;
+    while (parent && parent !== document.documentElement) {
+      if (parent.firstElementChild !== current) {
+        // Something precedes current in this parent — inject above it all
+        return { parent, before: parent.firstElementChild };
+      }
+      current = parent;
+      parent = parent.parentElement;
+    }
+
+    // Fallback: prepend inside [role="main"]
     return { parent: main, before: main.firstElementChild };
   }
 
@@ -113,7 +129,7 @@
       return url;
     }
 
-    const labelMatch = q.match(/^(?:label:|in:)(.+)$/);
+    const labelMatch = q.match(/^(?:label:|in:)(\S+)$/);
     if (labelMatch) {
       url.hash = `#label/${encodeURIComponent(labelMatch[1])}`;
       return url;

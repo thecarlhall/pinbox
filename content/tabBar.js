@@ -82,13 +82,6 @@ const PinboxTabBar = (() => {
         el.setAttribute('aria-selected', 'true');
       }
 
-      if (tab.icon) {
-        const icon = document.createElement('span');
-        icon.className = 'pb-tab-icon';
-        icon.textContent = tab.icon;
-        el.appendChild(icon);
-      }
-
       const label = document.createElement('span');
       label.className = 'pb-tab-label';
       label.textContent = tab.name;
@@ -289,7 +282,7 @@ const PinboxTabBar = (() => {
         const name = nameInput.value.trim();
         const query = queryInput.value.trim();
         if (!name || !query) return;
-        this.tabs.push({ id: PinboxStorage.uid(), name, query, icon: '' });
+        this.tabs.push({ id: PinboxStorage.uid(), name, query });
         this._renderTabs();
         this.callbacks.onTabAdded(this.tabs);
         close();

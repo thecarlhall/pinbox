@@ -157,11 +157,9 @@ function openForm(index) {
     const tab = tabs[index];
     $('tab-name').value  = tab.name;
     $('tab-query').value = tab.query;
-    $('tab-icon').value  = tab.icon || '';
   } else {
     $('tab-name').value  = '';
     $('tab-query').value = '';
-    $('tab-icon').value  = '';
   }
 
   $('tab-form').classList.remove('hidden');
@@ -176,7 +174,6 @@ function closeForm() {
 function saveFormTab() {
   const name  = $('tab-name').value.trim();
   const query = $('tab-query').value.trim();
-  const icon  = $('tab-icon').value.trim();
 
   if (!name || !query) {
     showStatus('Name and query are required.', 'error');
@@ -185,9 +182,9 @@ function saveFormTab() {
 
   if (editingTabId) {
     const idx = tabs.findIndex((t) => t.id === editingTabId);
-    if (idx !== -1) tabs[idx] = { ...tabs[idx], name, query, icon };
+    if (idx !== -1) tabs[idx] = { ...tabs[idx], name, query };
   } else {
-    tabs.push({ id: PinboxStorage.uid(), name, query, icon });
+    tabs.push({ id: PinboxStorage.uid(), name, query });
   }
 
   saveTabs();

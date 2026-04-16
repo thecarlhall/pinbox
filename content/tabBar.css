@@ -103,7 +103,7 @@
   height: 30px;
   padding: 0 12px;
   border: 1px solid var(--gt-chip-border);
-  border-radius: 20px;
+  border-radius: 6px;
   background: var(--gt-chip-bg);
   color: var(--gt-chip-text);
   cursor: pointer;
@@ -307,7 +307,7 @@
 #pinbox-root .pb-input {
   height: 30px;
   border: 1px solid var(--gt-input-border);
-  border-radius: 20px;
+  border-radius: 6px;
   background: var(--gt-input-bg);
   color: var(--gt-input-text);
   font-family: inherit;
@@ -328,7 +328,7 @@
 #pinbox-root .pb-btn {
   height: 30px;
   border: 1px solid var(--gt-input-border);
-  border-radius: 20px;
+  border-radius: 6px;
   background: var(--gt-chip-bg);
   color: var(--gt-chip-text);
   font-family: inherit;

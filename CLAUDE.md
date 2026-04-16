@@ -4,18 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Pinbox** is a Chrome MV3 extension that injects a pill-style tab bar into Gmail, letting users pin labels and search queries as one-click tabs above the inbox.
+**Pinbox** is a Chrome MV3 extension that injects a tab bar into Gmail, letting users pin labels and search queries as one-click tabs above the inbox toolbar.
 
 ## Features
 
-- Pill/chip tab bar injected below Gmail's search bar, above the message list
+- Tab bar injected above Gmail's own toolbar buttons, above the message list
 - Each tab references a Gmail label or search query; clicking navigates to that view
+- Tab names can include emoji directly (e.g. `📥 Inbox`) — no separate icon field
 - Per-tab chevron (▼) opens an Edit / Remove dropdown; inline forms for add/edit
 - Horizontal drag-and-drop reordering with insertion indicator
 - Live unread badge counts scraped from Gmail's sidebar DOM
 - Light/dark theme detection; defaults to light
 - Config synced via `chrome.storage.sync`, keyed per Gmail account
 - Options dashboard: manage tabs, theme picker, export/import JSON, Apps Script generator
+- Default tabs: 📥 Inbox, ⭐ Starred, 🔵 Unread
 
 ## Extension Structure
 
@@ -42,7 +44,7 @@ assets/icons/              # PNG icons at 16/32/48/128px (regenerate with genera
 
 **Content script loading order matters** — the manifest loads files sequentially, so each global (`PinboxStorage`, `PinboxAccounts`, etc.) is available by the time `content_script.js` runs. No bundler is used; each file attaches its module to a global const.
 
-**Injection point**: `[role="main"]` is the most stable Gmail selector. The bar is prepended as the first child with `position: sticky; top: 0` so it stays visible while the message list scrolls.
+**Injection point**: `findInjectionParent()` in `content_script.js` walks up from `[role="main"]` until it finds an ancestor where the current element is not the first child — meaning Gmail's toolbar siblings precede it. The bar is inserted as the first child of that ancestor, placing it above the toolbar. Falls back to prepending inside `[role="main"]` if no such ancestor is found. Uses `position: sticky; top: 0` so it stays visible while scrolling.
 
 **SPA navigation**: Gmail fires `hashchange` on view switches. `content_script.js` listens for this and also runs a `MutationObserver` on `document.body` to re-inject the bar if Gmail's DOM replacements remove it.
 
@@ -62,6 +64,23 @@ assets/icons/              # PNG icons at 16/32/48/128px (regenerate with genera
 - Root element id: `#pinbox-root`
 - All CSS classes prefixed `pb-` (e.g. `pb-tab`, `pb-active`, `pb-dropdown`)
 - CSS variables defined on `#pinbox-root`, overridden under `#pinbox-root.pb-dark`
+- Tab shape: `border-radius: 6px` (squarish, not pill-shaped)
+
+## Tab Data Shape
+
+```js
+{ id: string, name: string, query: string }
+```
+No separate `icon` field — emoji belong in `name` (e.g. `'📥 Inbox'`).
+
+## URL Routing
+
+`buildGmailUrl(query)` in `content_script.js` maps queries to Gmail hash URLs:
+- Known shortcuts (`inbox`, `is:starred`, etc.) → direct hash (`#inbox`, `#starred`)
+- Single-token `in:foo` or `label:foo` → `#label/foo`
+- Everything else (including multi-term queries like `in:inbox is:unread`) → `#search/<encoded>`
+
+The `label:` / `in:` regex uses `\S+` (not `.+`) to avoid matching compound queries.
 
 ## Development
 

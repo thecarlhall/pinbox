@@ -43,10 +43,9 @@ const PinboxStorage = (() => {
 
   function getDefaultTabs() {
     return [
-      { id: uid(), name: 'Inbox',   query: 'inbox',          icon: '📥' },
-      { id: uid(), name: 'Starred', query: 'is:starred',     icon: '⭐' },
-      { id: uid(), name: 'Sent',    query: 'in:sent',        icon: '📤' },
-      { id: uid(), name: 'Unread',  query: 'is:unread',      icon: '🔵' },
+      { id: uid(), name: '📥 Inbox',   query: 'inbox' },
+      { id: uid(), name: '⭐ Starred', query: 'is:starred' },
+      { id: uid(), name: '🔵 Unread',  query: 'is:unread' },
     ];
   }
 
