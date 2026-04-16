@@ -44,16 +44,16 @@ const PinboxUnread = (() => {
     const q = query.trim().toLowerCase();
 
     // Resolve well-known views
-    let labelName;
     if (q in QUERY_TO_LABEL) {
-      labelName = QUERY_TO_LABEL[q];
-    } else {
-      const m = q.match(/^(?:label:|in:)(.+)$/);
-      labelName = m ? m[1].trim() : null;
+      const labelName = QUERY_TO_LABEL[q];
+      return labelName ? scrapeSidebar(labelName) : 0;
     }
 
-    if (!labelName) return 0;
-    return scrapeSidebar(labelName);
+    // Only scrape for pure label/in: queries — no colons in the label name
+    // means no additional query operators (e.g. label:work is:unread is compound).
+    const m = q.match(/^(?:label:|in:)([^:]+)$/);
+    if (!m) return 0;
+    return scrapeSidebar(m[1].trim());
   }
 
   /**
@@ -68,46 +68,58 @@ const PinboxUnread = (() => {
    * It also renders a visible text badge (e.g. "4") inside the item.
    */
   function scrapeSidebar(labelName) {
-    const normalized = labelName.toLowerCase().replace(/[-_]/g, ' ');
+    const raw        = labelName.toLowerCase();
+    const normalized = raw.replace(/[-_]/g, ' ').trim();
 
-    // Query every clickable nav item Gmail renders
+    // Cast a wide net — Gmail uses several container/item patterns across versions.
+    // nav and [role="navigation"] are both used; items may be a, li, or div.
     const candidates = document.querySelectorAll(
-      '[role="navigation"] [role="menuitem"], ' +
-      '[role="navigation"] li, ' +
-      '[role="navigation"] a, ' +
-      '[role="navigation"] [data-tooltip]'
+      'nav a, nav li, nav [data-tooltip], nav [title], ' +
+      '[role="navigation"] a, [role="navigation"] li, ' +
+      '[role="navigation"] [data-tooltip], [role="navigation"] [title]'
     );
 
     for (const el of candidates) {
       const ariaLabel = (el.getAttribute('aria-label') || '').toLowerCase();
       const tooltip   = (el.getAttribute('data-tooltip') || '').toLowerCase();
+      const title     = (el.getAttribute('title') || '').toLowerCase();
       const text      = el.textContent.trim().toLowerCase();
 
-      // Match by aria-label prefix, tooltip, or visible text start
       const matched =
         ariaLabel.startsWith(normalized) ||
+        ariaLabel.startsWith(raw) ||
         tooltip === normalized ||
-        text.startsWith(normalized);
+        tooltip === raw ||
+        title === normalized ||
+        title === raw ||
+        text.startsWith(normalized + ' ') ||
+        text === normalized ||
+        text.startsWith(raw + ' ') ||
+        text === raw;
 
       if (!matched) continue;
 
-      // 1. Parse count from aria-label: "Inbox 4 unread"
+      // 1. Parse count from aria-label: "Inbox 4 unread" or "4 unread conversations"
       const ariaMatch = ariaLabel.match(/(\d+)\s*unread/);
       if (ariaMatch) return parseInt(ariaMatch[1], 10);
 
-      // 2. Look for a dedicated badge element Gmail renders inside the item
-      //    Gmail uses several class patterns for the count badge across versions.
-      const badge = el.querySelector(
-        '[aria-label*="unread"], .bsU, .nU, .aio, [data-count]'
-      );
+      // 2. Check aria-label on any descendant that mentions unread
+      const unreadEl = el.querySelector('[aria-label*="unread"]');
+      if (unreadEl) {
+        const m = (unreadEl.getAttribute('aria-label') || '').match(/(\d+)/);
+        if (m) return parseInt(m[1], 10);
+      }
+
+      // 3. Gmail badge classes and data attributes across versions
+      const badge = el.querySelector('.bsU, .nU, .aio, [data-count]');
       if (badge) {
         const n = parseInt(badge.textContent.trim() || badge.dataset.count, 10);
         if (!isNaN(n)) return n;
       }
 
-      // 3. Look for a standalone numeric span as the last child (Gmail's badge)
-      const children = [...el.querySelectorAll('span')];
-      for (const span of children.reverse()) {
+      // 4. Last-resort: rightmost standalone integer span (Gmail's count badge)
+      const spans = [...el.querySelectorAll('span')];
+      for (const span of spans.reverse()) {
         const val = span.textContent.trim();
         if (/^\d+$/.test(val)) return parseInt(val, 10);
       }

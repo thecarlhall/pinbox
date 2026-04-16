@@ -171,7 +171,9 @@
   // ── Unread count polling ──────────────────────────────────────────────────
 
   function startUnreadPolling(tabs) {
-    refreshUnreadCounts(tabs);
+    // Delay the first scrape — Gmail renders sidebar counts asynchronously
+    // and they may not be present immediately after injection.
+    setTimeout(() => refreshUnreadCounts(tabs), 2500);
     clearInterval(pollTimer);
     pollTimer = setInterval(() => {
       PinboxUnread.clearCache();

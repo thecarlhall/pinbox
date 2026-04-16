@@ -206,57 +206,53 @@
   transform: rotate(180deg);
 }
 
-/* Dropdown menu */
-#pinbox-root .pb-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
+/* Dropdown menu — position/top/left/z-index set inline via JS portal */
+.pb-dropdown {
   min-width: 120px;
   background: #ffffff;
   border: 1px solid #dadce0;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1001;
   padding: 4px 0;
   font-size: 13px;
   color: #3c4043;
   overflow: hidden;
 }
 
-#pinbox-root.pb-dark .pb-dropdown {
+.pb-dropdown.pb-dark {
   background: #2d2d2d;
   border-color: #5f6368;
   color: #e8eaed;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-#pinbox-root .pb-menu-item {
+.pb-dropdown .pb-menu-item {
   display: block;
   width: 100%;
   padding: 8px 16px;
   border: none;
   background: transparent;
   color: inherit;
-  font-family: inherit;
+  font-family: 'Google Sans', Roboto, Arial, sans-serif;
   font-size: 13px;
   text-align: left;
   cursor: pointer;
   transition: background 0.1s;
 }
 
-#pinbox-root .pb-menu-item:hover {
+.pb-dropdown .pb-menu-item:hover {
   background: #f1f3f4;
 }
 
-#pinbox-root.pb-dark .pb-menu-item:hover {
+.pb-dropdown.pb-dark .pb-menu-item:hover {
   background: #3c4043;
 }
 
-#pinbox-root .pb-menu-item.pb-menu-danger {
+.pb-dropdown .pb-menu-item.pb-menu-danger {
   color: #d93025;
 }
 
-#pinbox-root.pb-dark .pb-menu-item.pb-menu-danger {
+.pb-dropdown.pb-dark .pb-menu-item.pb-menu-danger {
   color: #f28b82;
 }
 

@@ -25,7 +25,8 @@ async function loadAccountOptions() {
     .filter((k) => k.startsWith('tabs_'))
     .map((k) => k.replace('tabs_', ''));
 
-  if (!accounts.includes('default')) accounts.unshift('default');
+  // Append 'default' rather than prepend so accounts with saved tabs are selected first
+  if (!accounts.includes('default')) accounts.push('default');
 
   const sel = $('account-select');
   sel.innerHTML = '';

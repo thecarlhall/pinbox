@@ -145,9 +145,15 @@ const PinboxTabBar = (() => {
       menu.appendChild(editItem);
       menu.appendChild(removeItem);
 
-      // Position below the chevron button
-      tabEl.style.position = 'relative';
-      tabEl.appendChild(menu);
+      // Portal to body so it escapes any stacking context from Gmail's toolbar.
+      // Use fixed positioning anchored to the tab's viewport rect.
+      const rect = tabEl.getBoundingClientRect();
+      menu.style.position = 'fixed';
+      menu.style.top  = `${rect.bottom + 4}px`;
+      menu.style.left = `${rect.left}px`;
+      menu.style.zIndex = '2147483647';
+      if (this.root?.classList.contains('pb-dark')) menu.classList.add('pb-dark');
+      document.body.appendChild(menu);
 
       chevron.classList.add('pb-chevron-open');
       this._openDropdown = menu;
