@@ -49,8 +49,9 @@ const PinboxDragDrop = (() => {
 
       const draggedId = e.dataTransfer.getData('text/plain');
       const tabs = [...container.querySelectorAll('.pb-tab[data-tab-id]')];
+      const rects = tabs.map((t) => t.getBoundingClientRect());
       const fromIndex = tabs.findIndex((t) => t.dataset.tabId === draggedId);
-      const toIndex = getDropIndex(tabs, e.clientX, e.clientY);
+      const toIndex = getDropIndex(tabs, rects, e.clientX, e.clientY);
 
       if (fromIndex !== -1 && toIndex !== fromIndex) {
         onReorder(fromIndex, toIndex);
@@ -59,14 +60,13 @@ const PinboxDragDrop = (() => {
   }
 
   /** Determine which slot the cursor is closest to. */
-  function getDropIndex(tabs, x, y) {
+  function getDropIndex(tabs, rects, x, y) {
     for (let i = 0; i < tabs.length; i++) {
-      const rect = tabs[i].getBoundingClientRect();
-      const midX = rect.left + rect.width / 2;
-      const midY = rect.top + rect.height / 2;
-      // For multi-row layouts, prefer row proximity then x position
-      if (y < rect.bottom && x < midX) return i;
-      if (y < rect.bottom && x >= midX) return i + 1;
+      const rect = rects[i];
+      if (y > rect.bottom) continue;
+      if (x <= rect.left + rect.width / 2) return i;
+      const nextRect = rects[i + 1];
+      if (!nextRect || nextRect.top >= rect.bottom) return i + 1;
     }
     return tabs.length;
   }
@@ -75,16 +75,15 @@ const PinboxDragDrop = (() => {
 
   function showDropIndicator(container, x, y) {
     const tabs = [...container.querySelectorAll('.pb-tab[data-tab-id]')];
-    const idx = getDropIndex(tabs, x, y);
+    const rects = tabs.map((t) => t.getBoundingClientRect());
+    const idx = getDropIndex(tabs, rects, x, y);
 
     if (!indicator) {
       indicator = document.createElement('div');
       indicator.className = 'pb-drop-indicator';
     }
 
-    // Insert indicator at the target slot
-    const ref = tabs[idx] || null;
-    container.insertBefore(indicator, ref);
+    container.insertBefore(indicator, tabs[idx] ?? null);
   }
 
   function clearDropIndicator(container) {
