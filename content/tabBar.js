@@ -218,8 +218,9 @@ const PinboxTabBar = (() => {
       form.appendChild(saveBtn);
       form.appendChild(cancelBtn);
 
-      // Insert form on the next line, right after the tabs container
-      this.tabsContainer.insertAdjacentElement('afterend', form);
+      // Append form at the end of root so it wraps to a new row without
+      // displacing the add button, which sits between pb-tabs and pb-add-inline.
+      this.root.appendChild(form);
       nameInput.focus();
       nameInput.select();
 
